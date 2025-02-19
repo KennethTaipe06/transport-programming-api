@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from models import TransportProblem, TransportSolution
 from solver import solve_transport_problem
 
@@ -8,6 +9,15 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Configurar CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Permite todos los orígenes
+    allow_credentials=True,
+    allow_methods=["*"],  # Permite todos los métodos
+    allow_headers=["*"],  # Permite todos los headers
+)
+
 @app.post(
     "/solve",
     response_model=TransportSolution,
@@ -15,8 +25,13 @@ app = FastAPI(
     description="Resuelve un problema de optimización de transporte y verifica su optimalidad",
     response_description="Retorna la matriz de solución, el costo óptimo y si la solución es óptima"
 )
-async def solve(
-    problem: TransportProblem = {
+async def solve(problem: TransportProblem):
+    """
+    Resuelve un problema de transporte con los siguientes parámetros:
+    
+    Ejemplo de entrada:
+    ```json
+    {
         "costs": [
             [5, 2, 7, 3],
             [3, 5, 6, 1],
@@ -26,9 +41,7 @@ async def solve(
         "supply": [80, 30, 60, 45],
         "demand": [70, 40, 70, 35]
     }
-):
-    """
-    Resuelve un problema de transporte con los siguientes parámetros:
+    ```
     
     - **costs**: Matriz de costos donde costs[i][j] es el costo de transportar desde el origen i al destino j
     - **supply**: Lista de capacidades de suministro de cada origen
